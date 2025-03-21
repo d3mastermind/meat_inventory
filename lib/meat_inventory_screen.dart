@@ -360,11 +360,14 @@ class MeatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return isLowStock ? BlinkingBorder(child: _buildCard()) : _buildCard();
+  }
+
+  Widget _buildCard() {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF2A2A2A),
         borderRadius: BorderRadius.circular(16.r),
-        border: isLowStock ? Border.all(color: Colors.red, width: 2.w) : null,
       ),
       child: Column(
         children: [
@@ -493,6 +496,64 @@ class MeatCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class BlinkingBorder extends StatefulWidget {
+  final Widget child;
+
+  const BlinkingBorder({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  State<BlinkingBorder> createState() => _BlinkingBorderState();
+}
+
+class _BlinkingBorderState extends State<BlinkingBorder>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: Colors.red.withOpacity(_animation.value),
+              width: 5.w,
+            ),
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
     );
   }
 }
